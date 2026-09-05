@@ -1,1 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Финансы" />
+  <title>Финансы</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div>
+        <div class="kicker" id="kicker"></div>
+        <h1 id="pageTitle">Сегодня</h1>
+      </div>
+      <button class="gear" id="openSettings" aria-label="Настройки">···</button>
+    </header>
 
+    <section class="page on" id="page-day">
+      <div class="hero" id="dayHero">
+        <div class="label">Осталось на сегодня</div>
+        <div class="value" id="dayLeft">0 ₽</div>
+        <div class="metrics">
+          <div class="metric"><span>Лимит дня</span><b id="dayCap">0 ₽</b></div>
+          <div class="metric"><span>Потрачено сегодня</span><b id="daySpent">0 ₽</b></div>
+        </div>
+        <p class="note" id="dayNote"></p>
+      </div>
+      <div class="actions-row">
+        <button class="btn" id="addIncome">Доход</button>
+        <button class="btn solid" id="addExpense">Расход</button>
+      </div>
+      <div class="section"><h2>Сегодня</h2><span class="quiet" id="walletHint"></span></div>
+      <div class="list" id="todayList"></div>
+    </section>
+
+    <section class="page" id="page-week">
+      <div class="callout" id="weekCallout"></div>
+      <div class="weekdays" id="weekDays"></div>
+      <div class="hero">
+        <div class="label">Расходы за неделю</div>
+        <div class="value" id="weekTotal">0 ₽</div>
+        <div class="metrics">
+          <div class="metric"><span>Доходы</span><b class="good" id="weekIn">0 ₽</b></div>
+          <div class="metric"><span>Крупнее всего</span><b id="weekTop">—</b></div>
+        </div>
+      </div>
+      <div class="section"><h2>Куда ушли деньги</h2></div>
+      <div class="card" style="padding:14px" id="weekCats"></div>
+    </section>
+
+    <section class="page" id="page-jars">
+      <div class="hero">
+        <div class="label">Кошелёк</div>
+        <div class="value" id="walletValue">0 ₽</div>
+        <p class="note" id="planNote"></p>
+      </div>
+      <div class="actions-row">
+        <button class="btn" id="addJar">Новая копилка</button>
+        <button class="btn solid" id="addIncome2">Зачислить доход</button>
+      </div>
+      <div class="section"><h2>Копилки</h2><span class="quiet">процент с каждого дохода</span></div>
+      <div class="list" id="jarList"></div>
+    </section>
+
+    <section class="page" id="page-debts">
+      <div class="hero">
+        <div class="label">Долговая нагрузка сейчас</div>
+        <div class="value" id="debtTotal">0 ₽</div>
+        <div class="metrics">
+          <div class="metric"><span>МФО, рост в день</span><b class="bad" id="debtPerDay">0 ₽</b></div>
+          <div class="metric"><span>Внесено всего</span><b id="debtPaid">0 ₽</b></div>
+        </div>
+        <p class="note" id="debtNote">Сумма МФО считается приблизительно по вашим цифрам и растёт каждый день.</p>
+      </div>
+      <div class="actions-row">
+        <button class="btn solid wide" id="addDebt">Добавить займ</button>
+      </div>
+      <div class="list" id="debtList"></div>
+    </section>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab on" data-page="day"><i>○</i>День</button>
+    <button class="tab" data-page="week"><i>□</i>Неделя</button>
+    <button class="tab" data-page="jars"><i>△</i>Копилки</button>
+    <button class="tab" data-page="debts"><i◇</i>Долги</button>
+  </nav>
+
+  <div class="sheet-bg" id="txSheet">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="txTitle">Расход</h2>
+      <div class="seg" id="txTypeSeg">
+        <button data-type="expense" class="on">Расход</button>
+        <button data-type="income">Доход</button>
+      </div>
+      <label>Сумма</label>
+      <input class="field" id="txAmount" inputmode="decimal" placeholder="0" />
+      <div id="txCatWrap">
+        <label>Категория</label>
+        <div class="picks" id="txCats"></div>
+        <button class="quiet" id="manageCats" style="margin-top:8px">Категории…</button>
+      </div>
+      <label>Дата</label>
+      <input class="field" id="txDate" type="date" />
+      <label>Комментарий</label>
+      <textarea id="txNote" placeholder="Необязательно"></textarea>
+      <div class="form-actions">
+        <button class="cancel" id="txCancel">Закрыть</button>
+        <button class="save" id="txSave">Сохранить</button>
+        <button class="danger hidden" id="txDelete">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-bg" id="catSheet">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2>Категории трат</h2>
+      <div class="list" id="catManageList"></div>
+      <label>Новая категория</label>
+      <input class="field" id="catName" placeholder="Например, Энергетики" />
+      <label>Иконка</label>
+      <div class="icon-row">
+        <div class="ph" id="catIconPrev">🛒</div>
+        <label class="file" style="flex:1">Выбрать картинку
+          <input type="file" id="catIconFile" accept="image/*" hidden />
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="cancel" id="catClose">Закрыть</button>
+        <button class="save" id="catAdd">Добавить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-bg" id="jarSheet">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="jarTitle">Копилка</h2>
+      <label>Название</label>
+      <input class="field" id="jarName" placeholder="Отпуск" />
+      <label>Процент с дохода</label>
+      <input class="field" id="jarPercent" inputmode="decimal" placeholder="10" />
+      <label>Иконка</label>
+      <div class="icon-row">
+        <div class="ph" id="jarIconPrev">▣</div>
+        <label class="file" style="flex:1">Выбрать картинку
+          <input type="file" id="jarIconFile" accept="image/*" hidden />
+        </label>
+      </div>
+      <p class="hint">При каждом доходе эта доля сразу уходит в копилку. Остаток остаётся в кошельке.</p>
+      <div class="form-actions">
+        <button class="cancel" id="jarCancel">Закрыть</button>
+        <button class="save" id="jarSave">Сохранить</button>
+        <button class="danger hidden" id="jarDelete">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-bg" id="debtSheet">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2 id="debtTitle">Займ</h2>
+      <div class="seg" id="debtKindSeg">
+        <button data-kind="mfo" class="on">МФО</button>
+        <button data-kind="card">Кредитка</button>
+      </div>
+      <label>Название</label>
+      <input class="field" id="debtName" placeholder="Займер" />
+      <label>Иконка</label>
+      <div class="icon-row">
+        <div class="ph" id="debtIconPrev">◇</div>
+        <label class="file" style="flex:1">Выбрать картинку
+          <input type="file" id="debtIconFile" accept="image/*" hidden />
+        </label>
+      </div>
+      <div id="mfoFields">
+        <label>Брал изначально</label>
+        <input class="field" id="debtPrincipal" inputmode="decimal" placeholder="30000" />
+        <label>К возврату сейчас</label>
+        <input class="field" id="debtCurrent" inputmode="decimal" placeholder="64534.16" />
+        <label>Дней просрочки</label>
+        <input class="field" id="debtOverdue" inputmode="numeric" placeholder="84" />
+        <p class="hint">Приложение оценит дневной прирост: (к возврату − брал) ÷ дни просрочки. Дальше сумма растёт сама. Когда получите новую цифру от МФО — поправьте «к возврату».</p>
+      </div>
+      <div id="cardFields" class="hidden">
+        <label>Задолженность, фиксированная сумма</label>
+        <input class="field" id="debtFixed" inputmode="decimal" placeholder="50000" />
+        <p class="hint">Для кредитки проценты не начисляются в приложении. Сумма меняется только платежами.</p>
+      </div>
+      <div class="form-actions">
+        <button class="cancel" id="debtCancel">Закрыть</button>
+        <button class="save" id="debtSave">Сохранить</button>
+        <button class="danger hidden" id="debtDelete">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-bg" id="paySheet">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2>Платёж по займу</h2>
+      <p class="hint" id="payTarget"></p>
+      <label>Сумма</label>
+      <input class="field" id="payAmount" inputmode="decimal" />
+      <label>Списать из</label>
+      <select id="paySource"></select>
+      <label>Дата</label>
+      <input class="field" id="payDate" type="date" />
+      <label>Комментарий</label>
+      <textarea id="payNote" placeholder="Необязательно"></textarea>
+      <div class="form-actions">
+        <button class="cancel" id="payCancel">Закрыть</button>
+        <button class="save" id="paySave">Внести</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-bg" id="settingsSheet">
+    <div class="sheet">
+      <div class="handle"></div>
+      <h2>Настройки</h2>
+      <label>Валюта</label>
+      <select id="currency">
+        <option value="RUB">Рубль (₽)</option>
+        <option value="EUR">Евро (€)</option>
+        <option value="USD">Доллар ($)</option>
+        <option value="UAH">Гривна (₴)</option>
+      </select>
+      <label>Дневной бюджет</label>
+      <input class="field" id="dailyBudget" inputmode="decimal" placeholder="500" />
+      <label>Следующая зарплата</label>
+      <input class="field" id="nextPay" type="date" />
+      <p class="hint">Неизрасходованный дневной лимит переходит на завтра. Перерасход вычитается из завтрашнего лимита.</p>
+      <div class="form-actions" style="grid-template-columns:1fr">
+        <button class="save" id="saveSettings">Сохранить</button>
+        <button class="cancel" id="exportBtn">Скачать копию JSON</button>
+        <label class="cancel file">Загрузить копию JSON
+          <input type="file" id="importFile" accept="application/json" hidden />
+        </label>
+        <button class="danger" id="wipeBtn">Удалить все данные</button>
+        <button class="cancel" id="closeSettings">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
