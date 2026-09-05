@@ -3,15 +3,22 @@ const SYM = { RUB: "₽", EUR: "€", USD: "$", UAH: "₴" };
 
 const DEFAULT_CATS = [
   { name: "Продукты", emoji: "🛒" },
-  { name: "Энергетики", emoji: "⚡" },
+  { name: "Столовая", emoji: "🍽" },
+  { name: "Ресторан", emoji: "🍷" },
   { name: "Кафе", emoji: "☕" },
+  { name: "Перекусы", emoji: "🍫" },
+  { name: "Сыворотки", emoji: "🥛" },
+  { name: "Энергетики", emoji: "⚡" },
   { name: "Развлечения", emoji: "🎟" },
   { name: "Транспорт", emoji: "🚌" },
+  { name: "Такси", emoji: "🚕" },
   { name: "Жильё", emoji: "🏠" },
   { name: "Связь", emoji: "📱" },
   { name: "Здоровье", emoji: "✚" },
+  { name: "Аптека", emoji: "💊" },
   { name: "Одежда", emoji: "👕" },
   { name: "Подписки", emoji: "▭" },
+  { name: "Быт", emoji: "🧹" },
   { name: "Другое", emoji: "·" }
 ];
 
@@ -79,6 +86,19 @@ function seedCats() {
   state.categories = DEFAULT_CATS.map((c) => ({ id: uid(), name: c.name, emoji: c.emoji, icon: "" }));
 }
 
+function ensureCats() {
+  if (!state.categories || !state.categories.length) {
+    seedCats();
+    return;
+  }
+  const have = new Set(state.categories.map((c) => String(c.name).toLowerCase()));
+  DEFAULT_CATS.forEach((c) => {
+    if (!have.has(c.name.toLowerCase())) {
+      state.categories.push({ id: uid(), name: c.name, emoji: c.emoji, icon: "" });
+    }
+  });
+}
+
 function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -88,7 +108,7 @@ function load() {
       return;
     }
     Object.assign(state, raw);
-    if (!state.categories || !state.categories.length) seedCats();
+    ensureCats();
     if (!Array.isArray(state.jars)) state.jars = [];
     if (!Array.isArray(state.debts)) state.debts = [];
     if (!Array.isArray(state.txs)) state.txs = [];
